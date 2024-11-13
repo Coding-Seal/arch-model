@@ -1,0 +1,46 @@
+@startuml Sequence
+
+
+== Рабочий день ==
+collections "Регистратура" as lobby
+queue "Скамейка" as bench
+participant  "Блок обработки событий" as eventManager
+actor "Медсестра" as nurse
+collections "Доктор" as doctor 
+
+lobby -> eventManager : [СОБЫТИЕ] Новый пациент
+activate lobby
+lobby -> bench : Садится на скамейку
+deactivate lobby
+alt Скамека занята
+    bench -> bench : Сбегает последний пациент
+    bench -> eventManager : [СОБЫТИЕ] Пациент сбежал
+    eventManager -> nurse : [СОБЫТИЕ] Пациент сбежал
+    nurse -> nurse : Сделать пометку о кол-ве пациентов
+end
+
+bench -> eventManager : [СОБЫТИЕ] Пациент сел на скамейку
+eventManager -> nurse : [СОБЫТИЕ] Пациент сел на скамейку
+activate nurse
+nurse -> nurse : Сделать пометку о кол-ве пациентов
+alt Врач свободен
+    nurse -> bench : Забрать пациента
+    nurse -> nurse : Сделать пометку о кол-ве пациентов
+    nurse -> doctor : Отправить пациента к врачу
+    activate doctor
+    nurse -> nurse : Сделать пометку о занятости врача
+    deactivate nurse
+    doctor -> eventManager : [СОБЫТИЕ] Закончили прием
+    deactivate doctor
+
+    eventManager -> nurse : [СОБЫТИЕ] Закончили прием
+    activate nurse
+    nurse -> nurse : Сделать пометку о занятости врача
+    deactivate nurse
+end
+
+
+
+    
+
+@enduml
