@@ -1,0 +1,95 @@
+@startuml Sequence
+
+collections "Lobby" as lobby
+queue "Bench" as bench
+participant  "Event Manager" as eventManager
+actor "Nurse" as nurse
+collections "Doctor" as doctor
+
+
+== Working Hours ==
+
+lobby -> eventManager : [EVENT] NEW_PATIENT
+activate lobby
+lobby -> bench : Tries to sit down
+deactivate lobby
+activate bench
+note over bench : Buffer type - FIFO
+
+alt Bench is full
+    bench -> bench : The last patient runs away
+    note right : rejection model - LIFO
+    bench -> eventManager : [EVENT] PATIENT_GONE
+    activate eventManager
+    eventManager -> nurse : [EVENT] PATIENT_GONE
+    deactivate eventManager
+end
+
+
+bench -> eventManager : [EVENT] PATIENT_IN_QUEUE
+deactivate bench
+
+activate eventManager
+eventManager -> nurse : [EVENT] PATIENT_IN_QUEUE
+deactivate eventManager
+
+loop Nurse listening for events
+    alt EVENT PATIENT_GONE
+        eventManager -> nurse : [EVENT] PATIENT_GONE
+        activate nurse
+        nurse -> nurse : Decrement number of patients on bench
+        deactivate nurse
+    else EVENT PATIENT_IN_QUEUE
+        eventManager -> nurse : [EVENT] PATIENT_IN_QUEUE
+        activate nurse
+        nurse -> nurse : Increment number of patients on bench
+        nurse -> nurse : Find available doctor
+        note right: choosing new doctor via ring
+
+        nurse -> bench : Get patient
+        activate bench
+        bench --> nurse : Send patient
+        deactivate bench
+        nurse -> nurse : Decrement number of patients on bench
+
+        nurse -> doctor : Send patient to the doctor
+        activate doctor
+        nurse -> nurse : Mark doctor busy
+        deactivate nurse
+        deactivate nurse
+
+        doctor -> eventManager : [EVENT] APPOINTMENT_FINISHED
+        deactivate doctor
+
+        activate eventManager
+        eventManager-> nurse : [EVENT] APPOINTMENT_FINISHED
+        deactivate eventManager
+    else EVENT  APPOINTMENT_FINISHED
+        eventManager-> nurse : [EVENT] APPOINTMENT_FINISHED
+        activate nurse
+        nurse -> nurse : Mark doctor available
+
+        alt Patients are on bench
+            nurse -> nurse : Find available doctor
+
+            nurse -> bench : Get patient
+            activate bench
+            bench --> nurse : Send patient
+            deactivate bench
+            nurse -> nurse : Decrement number of patients on bench
+
+            nurse -> doctor : Send patient to the doctor
+            activate doctor
+            nurse -> nurse : Mark doctor busy
+            deactivate nurse
+
+            doctor -> eventManager : [EVENT] APPOINTMENT_FINISHED
+            deactivate doctor
+            activate eventManager
+            eventManager-> nurse : [EVENT] APPOINTMENT_FINISHED
+            deactivate eventManager
+        end
+        deactivate nurse
+    end
+end
+@enduml

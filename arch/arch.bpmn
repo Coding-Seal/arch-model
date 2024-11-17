@@ -1,0 +1,45 @@
+Lobby:
+(publish NEW_PATIENT)
+Tries to sit down
+Bench:
+Bench is full
+The last patient runs away
+(publish PATIENT_GONE)
+(publish PATIENT_IN_QUEUE)
+...
+Bench: Bench is full
+(publish PATIENT_IN_QUEUE)
+
+(receive get patient from queue)
+Get first patient in queue
+(send send patient from queue) 
+
+Nurse:
+(notify PATIENT_GONE)
+Decrement number of patients on bench
+
+(notify PATIENT_IN_QUEUE)
+Increment number of patients on bench
+Find available doctor
+(send get patient from queue)
+(receive send patient from queue)
+(send patient)
+Mark doctor busy
+
+(notify APPOINTMENT_FINISHED)
+Mark doctor available
+Patients are on bench
+Find available doctor
+(send get patient from queue)
+(receive send patient from queue)
+(send patient)
+Mark doctor busy
+
+(notify APPOINTMENT_FINISHED)
+Mark doctor available
+Patients are on bench
+
+Doctor:
+(receive patient)
+Treat patient
+(publish APPOINTMENT_FINISHED)

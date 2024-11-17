@@ -1,4 +1,4 @@
-workspace "Arch-Model" "Assignment in polythech" {
+workspace "Arch-Model" "Assignment in polytech" {
 
     !identifiers hierarchical
 
