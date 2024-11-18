@@ -23,6 +23,7 @@ Increment number of patients on bench
 Find available doctor
 (send get patient from queue)
 (receive send patient from queue)
+(publish PATIENT_CALLED)
 (send patient)
 Mark doctor busy
 
@@ -32,6 +33,7 @@ Patients are on bench
 Find available doctor
 (send get patient from queue)
 (receive send patient from queue)
+(publish PATIENT_CALLED)
 (send patient)
 Mark doctor busy
 

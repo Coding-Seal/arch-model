@@ -7,3 +7,4 @@
 | PATIENT_GONE         | Patient was forced out of the queue  | bench   | nurse       |
 | PATIENT_IN_QUEUE     | Patient sat down on the bench        | bench   | nurse       |
 | APPOINTMENT_FINISHED | Doctor finished working with patient | doctor  | nurse       |
+| PATIENT_CALLED       | Patient was called to doctor         | nurse   | -           |

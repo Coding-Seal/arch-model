@@ -3,37 +3,39 @@ workspace "Arch-Model" "Assignment in polytech" {
     !identifiers hierarchical
 
     model {
-        u = person "Пациент"
-        ss = softwareSystem "Поликлиника" {
-            lobby = container "Регистратура"{
+        u = person "Patient"
+        ss = softwareSystem "Clinic" {
+            lobby = container "Lobby"{
                 tags "Many"
             }
-            bench = container "Скамека" {
+            bench = container "Bench" {
                 tags "Storage"
             }
-            taskExtractor = container "Медсестра"
+            nurse = container "Nurse"
             
-            taskExecutor = container "Врач"{
+            doctor = container "Doctor"{
                 tags "Many"
             }
-            eventManager = container "Блок обработки событий"
+            eventManager = container "Event Manager"
         }
-        u -> ss "Приходит на прием"
-        u -> ss.lobby "Идет получать талон"
+        u -> ss "Comes to clinic"
+        u -> ss.lobby "Comes to lobby"
 
-        ss.lobby -> ss.eventManager "Send PATIENT_CAME event"
-        ss.lobby -> ss.bench "Человек с талоном садится на скамейку"
+        ss.lobby -> ss.eventManager "[EVENT] NEW_PATIENT"
+        ss.lobby -> ss.bench "Tries to sit down"
 
-        ss.bench -> ss.eventManager "События PATIENT_GONE OR/AND PATIENT_IN_QUEUE "
+        ss.bench -> ss.eventManager "[EVENT] PATIENT_IN_QUEUE"
+        ss.bench -> ss.eventManager "[EVENT] PATIENT_GONE"
 
-        ss.taskExtractor -> ss.bench "Зовет пациента"
-        ss.taskExtractor -> ss.taskExecutor "Отправляет пациента к врачу"
-        ss.taskExtractor -> ss.eventManager "Событие CALLED_PATIENT"
+        ss.nurse -> ss.bench "Call patient"
+        ss.nurse -> ss.doctor "Send patient to the doctor"
+        ss.nurse -> ss.eventManager "[EVENT] PATIENT_CALLED"
 
-        ss.taskExecutor -> ss.eventManager "Событие TREATMENT_DONE"
+        ss.doctor -> ss.eventManager "[EVENT] APOINTMENT_FINISHED"
 
-        ss.eventManager -> ss.taskExtractor "Уведомить медсестру, что врач свободен" 
-        ss.eventManager -> ss.taskExtractor "Уведомить медсестру, что пришел новый пациент"       
+        ss.eventManager -> ss.nurse "[EVENT] APOINTMENT_FINISHED" 
+        ss.eventManager -> ss.nurse "[EVENT] PATIENT_IN_QUEUE"
+        ss.eventManager -> ss.nurse "[EVENT] PATIENT_GONE"        
     }
 
     views {
@@ -43,12 +45,7 @@ workspace "Arch-Model" "Assignment in polytech" {
         }
         container ss "Components" {
             include *
-            autolayout lr
-        }
-        dynamic ss {
-            title "Browse top 20 books feature"
-   
-            autoLayout lr
+            autolayout
         }
 
         styles { 

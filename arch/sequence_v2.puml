@@ -50,6 +50,8 @@ loop Nurse listening for events
         activate bench
         bench --> nurse : Send patient
         deactivate bench
+
+        nurse -> eventManager : [EVENT] PATIENT_CALLED
         nurse -> nurse : Decrement number of patients on bench
 
         nurse -> doctor : Send patient to the doctor
@@ -77,6 +79,7 @@ loop Nurse listening for events
             bench --> nurse : Send patient
             deactivate bench
             nurse -> nurse : Decrement number of patients on bench
+            nurse -> eventManager : [EVENT] PATIENT_CALLED
 
             nurse -> doctor : Send patient to the doctor
             activate doctor
