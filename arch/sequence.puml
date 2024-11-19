@@ -9,6 +9,7 @@ collections "Doctor" as doctor
 
 == Working Hours ==
 
+note over lobby: Infinite steady flow of patients
 lobby -> eventManager : [EVENT] NEW_PATIENT
 activate lobby
 lobby -> bench : Tries to sit down
@@ -42,6 +43,7 @@ note right: choosing new doctor via ring
 
 nurse -> bench : Get patient
 activate bench
+note over bench : Buffer type - FIFO
 bench --> nurse : Send patient
 deactivate bench
 nurse -> nurse : Decrement number of patients on bench
@@ -49,6 +51,7 @@ nurse -> eventManager : [EVENT] PATIENT_CALLED
 
 nurse -> doctor : Send patient to the doctor
 activate doctor
+note over doctor: Appointment take exponentially more time
 nurse -> nurse : Mark doctor busy
 deactivate nurse
 
@@ -64,9 +67,11 @@ nurse -> nurse : Mark doctor available
 
 alt Patients are on bench
     nurse -> nurse : Find available doctor
+    note right: choosing new doctor via ring
 
     nurse -> bench : Get patient
     activate bench
+    note over bench : Buffer type - FIFO
     bench --> nurse : Send patient
     deactivate bench
     nurse -> nurse : Decrement number of patients on bench
@@ -74,6 +79,7 @@ alt Patients are on bench
 
     nurse -> doctor : Send patient to the doctor
     activate doctor
+    note over doctor: Appointment take exponentially more time
     nurse -> nurse : Mark doctor busy
     deactivate nurse
 
