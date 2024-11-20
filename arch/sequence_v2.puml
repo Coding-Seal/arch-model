@@ -52,17 +52,15 @@ loop Nurse listening for events
         note over bench : Buffer type - FIFO
         bench --> nurse : Send patient
         deactivate bench
-
-        nurse -> eventManager : [EVENT] PATIENT_CALLED
         nurse -> nurse : Decrement number of patients on bench
 
         nurse -> doctor : Send patient to the doctor
-        note over doctor: Appointment take exponentially more time
         activate doctor
+        doctor -> eventManager : [EVENT] APPOINTMENT_STARTED
+        note over doctor: Appointment take exponentially more time
         nurse -> nurse : Mark doctor busy
         deactivate nurse
         deactivate nurse
-
         doctor -> eventManager : [EVENT] APPOINTMENT_FINISHED
         deactivate doctor
 
@@ -84,10 +82,10 @@ loop Nurse listening for events
             bench --> nurse : Send patient
             deactivate bench
             nurse -> nurse : Decrement number of patients on bench
-            nurse -> eventManager : [EVENT] PATIENT_CALLED
 
             nurse -> doctor : Send patient to the doctor
             activate doctor
+            doctor -> eventManager : [EVENT] APPOINTMENT_STARTED
             note over doctor: Appointment take exponentially more time
             nurse -> nurse : Mark doctor busy
             deactivate nurse

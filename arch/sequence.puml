@@ -47,10 +47,10 @@ note over bench : Buffer type - FIFO
 bench --> nurse : Send patient
 deactivate bench
 nurse -> nurse : Decrement number of patients on bench
-nurse -> eventManager : [EVENT] PATIENT_CALLED
 
 nurse -> doctor : Send patient to the doctor
 activate doctor
+doctor -> eventManager : [EVENT] APPOINTMENT_STARTED
 note over doctor: Appointment take exponentially more time
 nurse -> nurse : Mark doctor busy
 deactivate nurse
@@ -75,10 +75,10 @@ alt Patients are on bench
     bench --> nurse : Send patient
     deactivate bench
     nurse -> nurse : Decrement number of patients on bench
-    nurse -> eventManager : [EVENT] PATIENT_CALLED
 
     nurse -> doctor : Send patient to the doctor
     activate doctor
+    doctor -> eventManager : [EVENT] APPOINTMENT_STARTED
     note over doctor: Appointment take exponentially more time
     nurse -> nurse : Mark doctor busy
     deactivate nurse

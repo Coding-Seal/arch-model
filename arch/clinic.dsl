@@ -29,11 +29,12 @@ workspace "Arch-Model" "Assignment in polytech" {
 
         ss.nurse -> ss.bench "Call patient"
         ss.nurse -> ss.doctor "Send patient to the doctor"
-        ss.nurse -> ss.eventManager "[EVENT] PATIENT_CALLED"
 
-        ss.doctor -> ss.eventManager "[EVENT] APOINTMENT_FINISHED"
 
-        ss.eventManager -> ss.nurse "[EVENT] APOINTMENT_FINISHED" 
+        ss.doctor -> ss.eventManager "[EVENT] APPOINTMENT_STARTED"
+        ss.doctor -> ss.eventManager "[EVENT] APPOINTMENT_FINISHED"
+
+        ss.eventManager -> ss.nurse "[EVENT] APPOINTMENT_FINISHED" 
         ss.eventManager -> ss.nurse "[EVENT] PATIENT_IN_QUEUE"
         ss.eventManager -> ss.nurse "[EVENT] PATIENT_GONE"        
     }
