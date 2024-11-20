@@ -1,54 +1,77 @@
 package bench
 
 import (
+	"context"
 	"sync"
+	"time"
 
 	"github.com/Coding-Seal/arch-model/internal/domain"
 	"github.com/Coding-Seal/arch-model/pkg/dequeue"
 )
 
-var errEmptyQueue = "should never occur empty queue"
-
-type eventSender interface {
-	PatientLeft(patient *domain.Patient)
-	PatientCame(patient *domain.Patient)
-}
-
 type Bench struct {
-	eventSender eventSender
+	eventCh     chan<- domain.Event // TODO: should initialize in Register
+	patientIDCh <-chan int          // TODO: should initialize in Register
 
-	queue *dequeue.Dequeue[*domain.Patient]
+	queue *dequeue.Dequeue[int]
 	mu    sync.Mutex
 }
 
-func New(eventSender eventSender, numberOfSeats int) *Bench {
+func New(patientIDCh chan<- int, numberOfSeats int) *Bench {
 	return &Bench{
-		eventSender: eventSender,
-		queue:       dequeue.New[*domain.Patient](numberOfSeats),
+		queue: dequeue.New[int](numberOfSeats),
 	}
 }
 
-func (b *Bench) HandleNewPatient(patient *domain.Patient) {
+func (b *Bench) HandleNewPatient(patientID int) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
 	if b.queue.Full() {
-		lastPatient, _ := b.queue.Back()
+		lastPatientID, _ := b.queue.Back()
 		b.queue.PopBack()
-		b.eventSender.PatientLeft(lastPatient)
+		b.PublishPatientGone(lastPatientID)
 	}
 
-	_ = b.queue.PushBack(patient)
-	b.eventSender.PatientCame(patient)
+	_ = b.queue.PushBack(patientID)
+	b.PublishPatientInQueue(patientID)
 }
 
-func (b *Bench) NextPatient() *domain.Patient {
+func (b *Bench) NextPatientID() (int, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	patient, ok := b.queue.Back()
-	if !ok {
-		panic(errEmptyQueue)
+	patientID, ok := b.queue.Back()
+	if ok {
+		b.queue.PopFront()
 	}
-	return patient
+
+	return patientID, domain.ErrEmptyQueue
+}
+
+func (b *Bench) PublishPatientGone(patientID int) {
+	b.eventCh <- domain.PatientGoneEvent{
+		Timestamp: time.Now(),
+		PatientID: patientID,
+	}
+}
+
+func (b *Bench) PublishPatientInQueue(patientID int) {
+	b.eventCh <- domain.PatientInQueueEvent{
+		Timestamp: time.Now(),
+		PatientID: patientID,
+	}
+}
+
+func (b *Bench) Run(ctx context.Context) {
+	go func() {
+		for {
+			select {
+			case newPatientID := <-b.patientIDCh:
+				b.HandleNewPatient(newPatientID)
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 }
