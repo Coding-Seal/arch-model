@@ -23,7 +23,16 @@ func (d *Doctor) publishAppointmentFinished(patientID int) {
 	}
 }
 
+func (d *Doctor) publishAppointmentStarted(patientID int) {
+	d.eventCh <- domain.AppointmentStartedEvent{
+		Timestamp: time.Now(),
+		DoctorID:  d.id,
+		PatientID: patientID,
+	}
+}
+
 func (d *Doctor) HandleNewPatient(ctx context.Context, patientID int) {
+	d.publishAppointmentStarted(patientID)
 	select {
 	case <-ctx.Done():
 		return

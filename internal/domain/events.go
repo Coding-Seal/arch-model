@@ -12,7 +12,7 @@ const (
 	PATIENT_GONE
 	PATIENT_IN_QUEUE
 	APPOINTMENT_FINISHED
-	PATIENT_CALLED
+	APPOINTMENT_STARTED
 )
 
 type Event interface {
@@ -73,16 +73,16 @@ func (e AppointmentFinishedEvent) Type() EventType {
 	return APPOINTMENT_FINISHED
 }
 
-type PatientCalledEvent struct {
+type AppointmentStartedEvent struct {
 	Timestamp time.Time
 	PatientID int
 	DoctorID  int
 }
 
-func (e PatientCalledEvent) Time() time.Time {
+func (e AppointmentStartedEvent) Time() time.Time {
 	return e.Timestamp
 }
 
-func (e PatientCalledEvent) Type() EventType {
-	return PATIENT_CALLED
+func (e AppointmentStartedEvent) Type() EventType {
+	return APPOINTMENT_STARTED
 }
