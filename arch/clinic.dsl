@@ -23,9 +23,8 @@ workspace "Arch-Model" "Assignment in polytech" {
 
         ss.lobby -> ss.eventManager "[EVENT] NEW_PATIENT"
         ss.lobby -> ss.bench "Tries to sit down"
-
-        ss.bench -> ss.eventManager "[EVENT] PATIENT_IN_QUEUE"
-        ss.bench -> ss.eventManager "[EVENT] PATIENT_GONE"
+        ss.lobby -> ss.eventManager "[EVENT] PATIENT_IN_QUEUE"
+        ss.lobby -> ss.eventManager "[EVENT] PATIENT_GONE"
 
         ss.nurse -> ss.bench "Call patient"
         ss.nurse -> ss.doctor "Send patient to the doctor"

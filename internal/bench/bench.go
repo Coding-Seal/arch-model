@@ -11,30 +11,30 @@ import (
 
 type Bench struct {
 	eventCh     chan<- domain.Event // TODO: should initialize in Register
-	patientIDCh <-chan int          // TODO: should initialize in Register
+	patientIDCh <-chan int
 
 	queue *dequeue.Dequeue[int]
 	mu    sync.Mutex
 }
 
-func New(patientIDCh chan<- int, numberOfSeats int) *Bench {
+func New(numberOfSeats int) *Bench {
 	return &Bench{
 		queue: dequeue.New[int](numberOfSeats),
 	}
 }
 
-func (b *Bench) HandleNewPatient(patientID int) {
+func (b *Bench) handleNewPatient(patientID int) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
 	if b.queue.Full() {
 		lastPatientID, _ := b.queue.Back()
 		b.queue.PopBack()
-		b.PublishPatientGone(lastPatientID)
+		b.publishPatientGone(lastPatientID)
 	}
 
 	_ = b.queue.PushBack(patientID)
-	b.PublishPatientInQueue(patientID)
+	b.publishPatientInQueue(patientID)
 }
 
 func (b *Bench) NextPatientID() (int, error) {
@@ -49,14 +49,14 @@ func (b *Bench) NextPatientID() (int, error) {
 	return patientID, domain.ErrEmptyQueue
 }
 
-func (b *Bench) PublishPatientGone(patientID int) {
+func (b *Bench) publishPatientGone(patientID int) {
 	b.eventCh <- domain.PatientGoneEvent{
 		Timestamp: time.Now(),
 		PatientID: patientID,
 	}
 }
 
-func (b *Bench) PublishPatientInQueue(patientID int) {
+func (b *Bench) publishPatientInQueue(patientID int) {
 	b.eventCh <- domain.PatientInQueueEvent{
 		Timestamp: time.Now(),
 		PatientID: patientID,
@@ -68,7 +68,7 @@ func (b *Bench) Run(ctx context.Context) {
 		for {
 			select {
 			case newPatientID := <-b.patientIDCh:
-				b.HandleNewPatient(newPatientID)
+				b.handleNewPatient(newPatientID)
 			case <-ctx.Done():
 				return
 			}

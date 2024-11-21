@@ -31,7 +31,7 @@ func (d *Doctor) publishAppointmentStarted(patientID int) {
 	}
 }
 
-func (d *Doctor) HandleNewPatient(ctx context.Context, patientID int) {
+func (d *Doctor) handleNewPatient(ctx context.Context, patientID int) {
 	d.publishAppointmentStarted(patientID)
 	select {
 	case <-ctx.Done():
@@ -49,7 +49,7 @@ func (d *Doctor) Run(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			case patientID := <-d.patientIDCh:
-				d.HandleNewPatient(ctx, patientID)
+				d.handleNewPatient(ctx, patientID)
 			}
 		}
 	}()

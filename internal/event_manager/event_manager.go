@@ -23,7 +23,7 @@ func (m *EventManager) Subscribe(t domain.EventType) <-chan domain.Event {
 	return ch
 }
 
-func (m *EventManager) Notify(event domain.Event) {
+func (m *EventManager) notify(event domain.Event) {
 	for _, sub := range m.subscribers[event.Type()] {
 		sub <- event
 	}
@@ -36,7 +36,7 @@ func (m *EventManager) Run(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			case event := <-m.receiver:
-				m.Notify(event)
+				m.notify(event)
 			}
 		}
 	}()

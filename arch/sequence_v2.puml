@@ -9,26 +9,27 @@ collections "Doctor" as doctor
 
 == Working Hours ==
 note over lobby: Infinite steady flow of patients
-
 lobby -> eventManager : [EVENT] NEW_PATIENT
 activate lobby
 lobby -> bench : Tries to sit down
-deactivate lobby
 activate bench
 note over bench : Buffer type - FIFO
 
 alt Bench is full
-    bench -> bench : The last patient runs away
+    bench --> lobby : Patient that runs away
     note right : rejection model - LIFO
-    bench -> eventManager : [EVENT] PATIENT_GONE
+    deactivate bench
+    lobby -> eventManager : [EVENT] PATIENT_GONE
     activate eventManager
     eventManager -> nurse : [EVENT] PATIENT_GONE
     deactivate eventManager
+    activate nurse
+    nurse -> nurse : Decrement number of patients on bench
+    deactivate nurse
 end
 
-
-bench -> eventManager : [EVENT] PATIENT_IN_QUEUE
-deactivate bench
+lobby -> eventManager : [EVENT] PATIENT_IN_QUEUE
+deactivate lobby
 
 activate eventManager
 eventManager -> nurse : [EVENT] PATIENT_IN_QUEUE

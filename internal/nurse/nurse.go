@@ -36,7 +36,7 @@ func (n *Nurse) RegisterDoctor() (<-chan int, int) {
 	return ch, doctorID
 }
 
-func (n *Nurse) FindAvailableDoctor() (*doctor, error) {
+func (n *Nurse) findAvailableDoctor() (*doctor, error) {
 	var i = (n.previousDoctor + 1) % len(n.doctors)
 	for ; i != n.previousDoctor; i = (i + 1) % len(n.doctors) {
 		if !n.doctors[i].busy {
@@ -53,11 +53,11 @@ func (n *Nurse) FindAvailableDoctor() (*doctor, error) {
 	return nil, domain.ErrAllDoctorsBusy
 }
 
-func (n *Nurse) HandlePatientGoneEvent() {
+func (n *Nurse) handlePatientGoneEvent() {
 	n.numPatients--
 }
 
-func (n *Nurse) HandlePatientInQueueEvent() {
+func (n *Nurse) handlePatientInQueueEvent() {
 	n.numPatients++
 
 	err := n.sendPatientToDoctor()
@@ -66,7 +66,7 @@ func (n *Nurse) HandlePatientInQueueEvent() {
 	}
 }
 
-func (n *Nurse) HandleAppointmentFinishedEvent(event domain.Event) {
+func (n *Nurse) handleAppointmentFinishedEvent(event domain.Event) {
 	e, ok := event.(domain.AppointmentFinishedEvent)
 	if !ok {
 		// TODO: Log error
@@ -89,7 +89,7 @@ func (n *Nurse) HandleAppointmentFinishedEvent(event domain.Event) {
 }
 
 func (n *Nurse) sendPatientToDoctor() error {
-	doc, err := n.FindAvailableDoctor()
+	doc, err := n.findAvailableDoctor()
 	if err != nil {
 		return err
 	}
@@ -113,11 +113,11 @@ func (n *Nurse) Run(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			case <-n.PatentInQueueCh:
-				n.HandlePatientInQueueEvent()
+				n.handlePatientInQueueEvent()
 			case <-n.PatentGoneCh:
-				n.HandlePatientGoneEvent()
+				n.handlePatientGoneEvent()
 			case event := <-n.PatentInQueueCh:
-				n.HandleAppointmentFinishedEvent(event)
+				n.handleAppointmentFinishedEvent(event)
 			}
 		}
 	}()

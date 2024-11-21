@@ -31,7 +31,7 @@ func (l *Lobby) sendPatientToBench(patient domain.Patient) {
 	l.patientIDCh <- patient.ID
 }
 
-func (l *Lobby) GeneratePatient() {
+func (l *Lobby) generatePatient() {
 	patient := l.newRandomPatient()
 	l.publishNewPatient(patient)
 	l.sendPatientToBench(patient)
@@ -47,7 +47,7 @@ func (l *Lobby) Run(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				l.GeneratePatient()
+				l.generatePatient()
 			}
 		}
 	}()
