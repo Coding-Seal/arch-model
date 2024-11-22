@@ -22,12 +22,19 @@ type accessGetter interface {
 type Lobby struct {
 	eventCh       chan<- domain.Event
 	patientSender patientSender
+	id            int
+	genPeriod     time.Duration
 
 	log *logger.Logger
 }
 
-func New(log *slog.Logger, patientSender patientSender, ID int) *Lobby {
-	return &Lobby{patientSender: patientSender, log: logger.New(log, fmt.Sprintf("LOBBY_%d", ID))}
+func New(log *slog.Logger, patientSender patientSender, ID int, genPeriod time.Duration) *Lobby {
+	return &Lobby{
+		patientSender: patientSender,
+		log:           logger.New(log, fmt.Sprintf("LOBBY_%d", ID)),
+		id:            ID,
+		genPeriod:     genPeriod,
+	}
 }
 
 func (l *Lobby) Register(accessGetter accessGetter) {
@@ -40,6 +47,7 @@ func (l *Lobby) publishNewPatient(patient domain.Patient) {
 	l.eventCh <- domain.NewPatientEvent{
 		Timestamp: time.Now(),
 		Patient:   patient,
+		LobbyID:   l.id,
 	}
 }
 
@@ -55,6 +63,7 @@ func (l *Lobby) publishPatientGone(patientID int) {
 	l.eventCh <- domain.PatientGoneEvent{
 		Timestamp: time.Now(),
 		PatientID: patientID,
+		LobbyID:   l.id,
 	}
 }
 
@@ -63,14 +72,16 @@ func (l *Lobby) publishPatientInQueue(patientID int) {
 	l.eventCh <- domain.PatientInQueueEvent{
 		Timestamp: time.Now(),
 		PatientID: patientID,
+		LobbyID:   l.id,
 	}
 }
 
 func (l *Lobby) sendPatientToBench(patient domain.Patient) {
 	lastID, ok := l.patientSender.PushPatientID(patient.ID)
 	l.log.Debug("pushed patient into queue", slog.Int("patientID", patient.ID))
+
 	if !ok {
-		l.log.Debug("Patient gone", slog.Int("patientID", lastID))
+		l.log.Debug("patient gone", slog.Int("patientID", lastID))
 		l.publishPatientGone(lastID)
 	}
 
@@ -85,12 +96,13 @@ func (l *Lobby) generatePatient() {
 }
 
 func (l *Lobby) Run(ctx context.Context) {
-	l.log.Info("Started")
+	l.log.Info("started")
 
 	go func() {
-		ticker := time.NewTicker(time.Second / 2) // FIXME: should configure in New
+		ticker := time.NewTicker(l.genPeriod)
 		defer ticker.Stop()
-		defer l.log.Info("Stopped")
+		defer l.log.Info("stopped")
+
 		for {
 			select {
 			case <-ctx.Done():

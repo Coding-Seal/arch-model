@@ -60,6 +60,7 @@ func (n *Nurse) findAvailableDoctor() (*doctor, error) {
 	for ; i != n.previousDoctor; i = (i + 1) % len(n.doctors) {
 		if !n.doctors[i].busy {
 			n.previousDoctor = i
+			n.log.Debug("found available doctor", slog.Int("doctorID", i))
 
 			return n.doctors[i], nil
 		}
@@ -67,6 +68,7 @@ func (n *Nurse) findAvailableDoctor() (*doctor, error) {
 
 	if !n.doctors[i].busy {
 		n.previousDoctor = i
+		n.log.Debug("found available doctor", slog.Int("doctorID", i))
 
 		return n.doctors[i], nil
 	}
@@ -90,11 +92,11 @@ func (n *Nurse) handlePatientInQueueEvent() {
 func (n *Nurse) handleAppointmentFinishedEvent(event domain.Event) {
 	e, ok := event.(domain.AppointmentFinishedEvent)
 	if !ok {
-		// TODO: Log error
+		n.log.Error("wrong event", slog.String("eventType", event.Type().String()))
 	}
 
 	if e.DoctorID >= len(n.doctors) {
-		// TODO: Log error
+		n.log.Error("wrong doctor ID", slog.Int("doctorID", e.DoctorID))
 	}
 
 	n.doctors[e.DoctorID].busy = false
@@ -105,7 +107,7 @@ func (n *Nurse) handleAppointmentFinishedEvent(event domain.Event) {
 
 	err := n.sendPatientToDoctor()
 	if err != nil {
-		// TODO: Log error
+		n.log.Error("wrong doctor ID", slog.Int("doctorID", e.DoctorID))
 	}
 }
 
@@ -137,7 +139,7 @@ func (n *Nurse) Run(ctx context.Context) {
 				n.handlePatientInQueueEvent()
 			case <-n.patentGoneCh:
 				n.handlePatientGoneEvent()
-			case event := <-n.patentInQueueCh:
+			case event := <-n.appointmentFinishedCh:
 				n.handleAppointmentFinishedEvent(event)
 			}
 		}

@@ -19,7 +19,8 @@ const (
 	numDoctors       = 5
 	numberOfSeats    = 5
 	numberOfLobbies  = 3
-	firstAppointment = time.Second
+	firstAppointment = 500 * time.Millisecond
+	genRate          = 1 * time.Second
 )
 
 func main() {
@@ -35,17 +36,16 @@ func main() {
 	nurse.Register(eventManager)
 
 	lobbies := make([]*lobby.Lobby, 0, numberOfLobbies)
-
 	doctors := make([]*doctor.Doctor, 0, numDoctors)
 
 	for i := range numberOfLobbies {
-		lobby := lobby.New(log, bench, i+1)
+		lobby := lobby.New(log, bench, i+1, genRate)
 		lobby.Register(eventManager)
 		lobbies = append(lobbies, lobby)
 	}
 
 	for range numDoctors {
-		doc := doctor.New(firstAppointment)
+		doc := doctor.New(log, firstAppointment)
 		doc.Register(eventManager, nurse)
 		doctors = append(doctors, doc)
 	}
@@ -62,5 +62,4 @@ func main() {
 	}
 
 	<-ctx.Done()
-
 }

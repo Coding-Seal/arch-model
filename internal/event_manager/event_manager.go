@@ -30,6 +30,7 @@ func (m *EventManager) PublishAccess() chan<- domain.Event {
 
 func (m *EventManager) Subscribe(t domain.EventType) <-chan domain.Event {
 	m.log.Info("someone subscribed to events", slog.String("eventType", t.String()))
+
 	ch := make(chan domain.Event)
 	m.subscribers[t] = append(m.subscribers[t], ch)
 
@@ -43,9 +44,11 @@ func (m *EventManager) notify(event domain.Event) {
 }
 
 func (m *EventManager) Run(ctx context.Context) {
-	m.log.Info("Started")
+	m.log.Info("started")
+
 	go func() {
-		defer m.log.Info("Stopped")
+		defer m.log.Info("stopped")
+
 		for {
 			select {
 			case <-ctx.Done():
@@ -54,6 +57,5 @@ func (m *EventManager) Run(ctx context.Context) {
 				m.notify(event)
 			}
 		}
-
 	}()
 }

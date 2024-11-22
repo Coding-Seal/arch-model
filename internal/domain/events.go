@@ -17,7 +17,6 @@ const (
 
 func (t EventType) String() string {
 	switch t {
-
 	case NEW_PATIENT:
 		return "NewPatient"
 	case PATIENT_GONE:
@@ -41,6 +40,7 @@ type Event interface {
 type NewPatientEvent struct {
 	Timestamp time.Time
 	Patient   Patient
+	LobbyID   int
 }
 
 func (e NewPatientEvent) Type() EventType {
@@ -54,6 +54,7 @@ func (e NewPatientEvent) Time() time.Time {
 type PatientGoneEvent struct {
 	Timestamp time.Time
 	PatientID int
+	LobbyID   int
 }
 
 func (e PatientGoneEvent) Time() time.Time {
@@ -67,6 +68,7 @@ func (e PatientGoneEvent) Type() EventType {
 type PatientInQueueEvent struct {
 	Timestamp time.Time
 	PatientID int
+	LobbyID   int
 }
 
 func (e PatientInQueueEvent) Time() time.Time {
