@@ -1,77 +1,55 @@
 package bench
 
 import (
-	"context"
+	"log/slog"
 	"sync"
-	"time"
 
 	"github.com/Coding-Seal/arch-model/internal/domain"
 	"github.com/Coding-Seal/arch-model/pkg/dequeue"
+	"github.com/Coding-Seal/arch-model/pkg/logger"
 )
 
 type Bench struct {
-	eventCh     chan<- domain.Event // TODO: should initialize in Register
-	patientIDCh <-chan int
-
 	queue *dequeue.Dequeue[int]
 	mu    sync.Mutex
+	log   *logger.Logger
 }
 
-func New(numberOfSeats int) *Bench {
+func New(log *slog.Logger, numberOfSeats int) *Bench {
 	return &Bench{
+		log:   logger.New(log, "BENCH"),
 		queue: dequeue.New[int](numberOfSeats),
 	}
 }
 
-func (b *Bench) handleNewPatient(patientID int) {
+func (b *Bench) PushPatientID(patientID int) (int, bool) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
 	if b.queue.Full() {
 		lastPatientID, _ := b.queue.Back()
+		b.log.Debug("queue is full, some one have to go", slog.Int("newPatientID", patientID), slog.Int("lastPatientID", lastPatientID))
 		b.queue.PopBack()
-		b.publishPatientGone(lastPatientID)
+
+		return lastPatientID, false
 	}
 
 	_ = b.queue.PushBack(patientID)
-	b.publishPatientInQueue(patientID)
+	b.log.Debug("pushed patient", slog.Int("patientID", patientID))
+
+	return 0, true
 }
 
 func (b *Bench) NextPatientID() (int, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	patientID, ok := b.queue.Back()
-	if ok {
-		b.queue.PopFront()
+	patientID, ok := b.queue.Front()
+	if !ok {
+		b.log.Warning("tried to advance queue, it is empty")
+		return patientID, domain.ErrEmptyQueue
 	}
-
+	b.queue.PopFront()
+	b.log.Debug("advanced queue", slog.Int("patientID", patientID))
 	return patientID, domain.ErrEmptyQueue
-}
-
-func (b *Bench) publishPatientGone(patientID int) {
-	b.eventCh <- domain.PatientGoneEvent{
-		Timestamp: time.Now(),
-		PatientID: patientID,
-	}
-}
-
-func (b *Bench) publishPatientInQueue(patientID int) {
-	b.eventCh <- domain.PatientInQueueEvent{
-		Timestamp: time.Now(),
-		PatientID: patientID,
-	}
-}
-
-func (b *Bench) Run(ctx context.Context) {
-	go func() {
-		for {
-			select {
-			case newPatientID := <-b.patientIDCh:
-				b.handleNewPatient(newPatientID)
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
 }

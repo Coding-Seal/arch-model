@@ -7,12 +7,29 @@ import (
 	"github.com/Coding-Seal/arch-model/internal/domain"
 )
 
-type Doctor struct {
-	id                      int           // TODO: initialize in New
-	nextAppointmentDuration time.Duration // TODO: initialize in New
+type accessGetter interface {
+	PublishAccess() chan<- domain.Event
+}
 
-	eventCh     chan<- domain.Event // TODO: initialize in Register
-	patientIDCh <-chan int          // TODO: initialize in Register
+type doctorRegisterer interface {
+	RegisterDoctor() (<-chan int, int)
+}
+
+type Doctor struct {
+	id                      int
+	nextAppointmentDuration time.Duration
+
+	eventCh     chan<- domain.Event
+	patientIDCh <-chan int
+}
+
+func New(firstAppointment time.Duration) *Doctor {
+	return &Doctor{nextAppointmentDuration: firstAppointment}
+}
+
+func (d *Doctor) Register(accessGetter accessGetter, doctorRegisterer doctorRegisterer) {
+	d.eventCh = accessGetter.PublishAccess()
+	d.patientIDCh, d.id = doctorRegisterer.RegisterDoctor()
 }
 
 func (d *Doctor) publishAppointmentFinished(patientID int) {

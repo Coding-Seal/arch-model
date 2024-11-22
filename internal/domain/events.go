@@ -7,13 +7,31 @@ import (
 type EventType int
 
 const (
-	NONE = iota
+	NONE EventType = iota
 	NEW_PATIENT
 	PATIENT_GONE
 	PATIENT_IN_QUEUE
 	APPOINTMENT_FINISHED
 	APPOINTMENT_STARTED
 )
+
+func (t EventType) String() string {
+	switch t {
+
+	case NEW_PATIENT:
+		return "NewPatient"
+	case PATIENT_GONE:
+		return "PatientGone"
+	case PATIENT_IN_QUEUE:
+		return "PatientInQueue"
+	case APPOINTMENT_FINISHED:
+		return "AppointmentFinished"
+	case APPOINTMENT_STARTED:
+		return "AppointmentStarted"
+	default:
+		return "None"
+	}
+}
 
 type Event interface {
 	Time() time.Time

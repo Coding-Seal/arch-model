@@ -2,5 +2,7 @@ package domain
 
 import "errors"
 
-var ErrEmptyQueue = errors.New("no patients on bench")
-var ErrAllDoctorsBusy = errors.New("no available doctors")
+var (
+	ErrEmptyQueue     = errors.New("no patients on bench")
+	ErrAllDoctorsBusy = errors.New("no available doctors")
+)
