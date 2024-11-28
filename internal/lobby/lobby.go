@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"math/rand/v2"
 	"time"
 
 	"github.com/Coding-Seal/arch-model/internal/domain"
 	"github.com/Coding-Seal/arch-model/pkg/logger"
+	"github.com/brianvoe/gofakeit/v7"
 )
 
 type patientSender interface {
@@ -48,36 +48,24 @@ func (l *Lobby) Register(accessGetter accessGetter) {
 
 func (l *Lobby) publishNewPatient(patient domain.Patient) {
 	l.log.Debug("publish event", slog.String("eventType", domain.NEW_PATIENT.String()))
-	l.eventCh <- domain.NewPatientEvent{
-		Timestamp: time.Now(),
-		Patient:   patient,
-		LobbyID:   l.id,
-	}
+	l.eventCh <- domain.NewNewPatientEvent(patient, l.id)
 }
 
 func (l *Lobby) newRandomPatient() domain.Patient {
 	return domain.Patient{
-		ID:   rand.Int(),
-		Name: "Andy", // TODO: use fakeIt or smth like that
+		ID:   domain.SeqPatientID.Get(),
+		Name: gofakeit.Name(),
 	}
 }
 
 func (l *Lobby) publishPatientGone(patientID int) {
 	l.log.Debug("publish event", slog.String("eventType", domain.PATIENT_GONE.String()))
-	l.eventCh <- domain.PatientGoneEvent{
-		Timestamp: time.Now(),
-		PatientID: patientID,
-		LobbyID:   l.id,
-	}
+	l.eventCh <- domain.NewPatientGoneEvent(patientID, l.id)
 }
 
 func (l *Lobby) publishPatientInQueue(patientID int) {
 	l.log.Debug("publish event", slog.String("eventType", domain.PATIENT_IN_QUEUE.String()))
-	l.eventCh <- domain.PatientInQueueEvent{
-		Timestamp: time.Now(),
-		PatientID: patientID,
-		LobbyID:   l.id,
-	}
+	l.eventCh <- domain.NewPatientInQueueEvent(patientID, l.id)
 }
 
 func (l *Lobby) sendPatientToBench(patient domain.Patient) {

@@ -136,9 +136,11 @@ func (n *Nurse) Run(ctx context.Context) {
 	ctx, cancel := context.WithCancel(ctx)
 	n.cancel = cancel
 	n.log.Info("started serving")
+
 	go func() {
 		defer n.log.Info("stopped serving")
 		defer func() { n.done <- struct{}{} }()
+
 		for {
 			select {
 			case <-ctx.Done():

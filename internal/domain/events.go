@@ -36,73 +36,100 @@ type Event interface {
 	Time() time.Time
 	Type() EventType
 }
+type eventTimer struct {
+	Timestamp time.Time `json:"timestamp"`
+	EventType EventType `json:"eventType"`
+}
+
+func (e eventTimer) Type() EventType {
+	return e.EventType
+}
+
+func (e eventTimer) Time() time.Time {
+	return e.Timestamp
+}
 
 type NewPatientEvent struct {
-	Timestamp time.Time `json:"timestamp"`
-	Patient   Patient   `json:"patient_id"`
-	LobbyID   int       `json:"lobby_id"`
+	eventTimer
+	Patient Patient `json:"patientId"`
+	LobbyID int     `json:"lobbyId"`
 }
 
-func (e NewPatientEvent) Type() EventType {
-	return NEW_PATIENT
-}
-
-func (e NewPatientEvent) Time() time.Time {
-	return e.Timestamp
+func NewNewPatientEvent(patient Patient, lobbyID int) NewPatientEvent {
+	return NewPatientEvent{
+		eventTimer: eventTimer{
+			Timestamp: time.Now(),
+			EventType: NEW_PATIENT,
+		},
+		Patient: patient,
+		LobbyID: lobbyID,
+	}
 }
 
 type PatientGoneEvent struct {
-	Timestamp time.Time `json:"timestamp"`
-	PatientID int       `json:"patient_id"`
-	LobbyID   int       `json:"lobby_id"`
+	eventTimer
+	PatientID int `json:"patientId"`
+	LobbyID   int `json:"lobbyId"`
 }
 
-func (e PatientGoneEvent) Time() time.Time {
-	return e.Timestamp
-}
-
-func (e PatientGoneEvent) Type() EventType {
-	return PATIENT_GONE
+func NewPatientGoneEvent(patientId int, lobbyID int) PatientGoneEvent {
+	return PatientGoneEvent{
+		eventTimer: eventTimer{
+			Timestamp: time.Now(),
+			EventType: PATIENT_GONE,
+		},
+		PatientID: patientId,
+		LobbyID:   lobbyID,
+	}
 }
 
 type PatientInQueueEvent struct {
-	Timestamp time.Time `json:"timestamp"`
-	PatientID int       `json:"patient_id"`
-	LobbyID   int       `json:"lobby_id"`
+	eventTimer
+	PatientID int `json:"patientId"`
+	LobbyID   int `json:"lobbyId"`
 }
 
-func (e PatientInQueueEvent) Time() time.Time {
-	return e.Timestamp
-}
-
-func (e PatientInQueueEvent) Type() EventType {
-	return PATIENT_IN_QUEUE
+func NewPatientInQueueEvent(patientId int, lobbyID int) PatientInQueueEvent {
+	return PatientInQueueEvent{
+		eventTimer: eventTimer{
+			Timestamp: time.Now(),
+			EventType: PATIENT_IN_QUEUE,
+		},
+		PatientID: patientId,
+		LobbyID:   lobbyID,
+	}
 }
 
 type AppointmentFinishedEvent struct {
-	Timestamp time.Time `json:"timestamp"`
-	PatientID int       `json:"patient_id"`
-	DoctorID  int       `json:"doctor_id"`
+	eventTimer
+	PatientID int `json:"patientId"`
+	DoctorID  int `json:"doctorId"`
 }
 
-func (e AppointmentFinishedEvent) Time() time.Time {
-	return e.Timestamp
-}
-
-func (e AppointmentFinishedEvent) Type() EventType {
-	return APPOINTMENT_FINISHED
+func NewAppointmentFinishedEvent(patientId int, doctorID int) AppointmentFinishedEvent {
+	return AppointmentFinishedEvent{
+		eventTimer: eventTimer{
+			Timestamp: time.Now(),
+			EventType: APPOINTMENT_FINISHED,
+		},
+		PatientID: patientId,
+		DoctorID:  doctorID,
+	}
 }
 
 type AppointmentStartedEvent struct {
-	Timestamp time.Time `json:"timestamp"`
-	PatientID int       `json:"patient_id"`
-	DoctorID  int       `json:"doctor_id"`
+	eventTimer
+	PatientID int `json:"patientId"`
+	DoctorID  int `json:"doctorId"`
 }
 
-func (e AppointmentStartedEvent) Time() time.Time {
-	return e.Timestamp
-}
-
-func (e AppointmentStartedEvent) Type() EventType {
-	return APPOINTMENT_STARTED
+func NewAppointmentStartedEvent(patientId int, doctorID int) AppointmentStartedEvent {
+	return AppointmentStartedEvent{
+		eventTimer: eventTimer{
+			Timestamp: time.Now(),
+			EventType: APPOINTMENT_STARTED,
+		},
+		PatientID: patientId,
+		DoctorID:  doctorID,
+	}
 }

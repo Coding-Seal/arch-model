@@ -49,20 +49,12 @@ func (d *Doctor) Register(accessGetter accessGetter, doctorRegisterer doctorRegi
 
 func (d *Doctor) publishAppointmentFinished(patientID int) {
 	d.log.Debug("publish event", slog.String("eventType", domain.APPOINTMENT_FINISHED.String()))
-	d.eventCh <- domain.AppointmentFinishedEvent{
-		Timestamp: time.Now(),
-		DoctorID:  d.id,
-		PatientID: patientID,
-	}
+	d.eventCh <- domain.NewAppointmentFinishedEvent(patientID, d.id)
 }
 
 func (d *Doctor) publishAppointmentStarted(patientID int) {
 	d.log.Debug("publish event", slog.String("eventType", domain.APPOINTMENT_STARTED.String()))
-	d.eventCh <- domain.AppointmentStartedEvent{
-		Timestamp: time.Now(),
-		DoctorID:  d.id,
-		PatientID: patientID,
-	}
+	d.eventCh <- domain.NewAppointmentStartedEvent(patientID, d.id)
 }
 
 func (d *Doctor) handleNewPatient(ctx context.Context, patientID int) {
@@ -81,6 +73,7 @@ func (d *Doctor) handleNewPatient(ctx context.Context, patientID int) {
 
 func (d *Doctor) Run(ctx context.Context) {
 	d.log.Info("started serving")
+
 	ctx, cancel := context.WithCancel(ctx)
 	d.cancel = cancel
 

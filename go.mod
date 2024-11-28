@@ -3,6 +3,7 @@ module github.com/Coding-Seal/arch-model
 go 1.23.1
 
 require (
+	github.com/brianvoe/gofakeit/v7 v7.1.2 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect

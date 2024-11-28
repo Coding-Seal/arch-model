@@ -14,6 +14,7 @@ import (
 	event_manager "github.com/Coding-Seal/arch-model/internal/event_manager"
 	"github.com/Coding-Seal/arch-model/internal/lobby"
 	"github.com/Coding-Seal/arch-model/internal/nurse"
+	"github.com/Coding-Seal/arch-model/pkg/jsonl"
 )
 
 const (
@@ -30,19 +31,24 @@ type Service interface {
 }
 
 func main() {
-	var services []Service
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
-	defer stop()
-
-	logFile, err := os.Create("logs/" + time.Now().Format(time.RFC3339) + ".log")
+	logFile, err := os.Create(".logs/" + time.Now().Format(time.RFC3339) + ".log")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	journalFile, err := os.Create(".journal/" + time.Now().Format(time.RFC3339) + ".jrl")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer stop()
+
 	log := slog.New(slog.NewTextHandler(logFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
+	services := make([]Service, 0, numDoctors+numberOfLobbies)
 	bench := bench.New(log, numberOfSeats)
-	eventManager := event_manager.New(log)
+	eventManager := event_manager.New(log, jsonl.NewWriter(journalFile))
 	nurse := nurse.New(log, bench)
 	nurse.Register(eventManager)
 

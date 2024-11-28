@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/Coding-Seal/arch-model/internal/domain"
+	"github.com/Coding-Seal/arch-model/pkg/jsonl"
 	"github.com/Coding-Seal/arch-model/pkg/logger"
 )
 
@@ -15,16 +16,18 @@ type EventManager struct {
 	receiver    chan domain.Event
 	subscribers map[domain.EventType][]chan<- domain.Event
 
-	log *logger.Logger
+	log     *logger.Logger
+	journal *jsonl.Writer
 }
 
-func New(log *slog.Logger) *EventManager {
+func New(log *slog.Logger, journal *jsonl.Writer) *EventManager {
 	return &EventManager{
 		done:        make(chan struct{}, 1),
 		receiver:    make(chan domain.Event),
 		subscribers: make(map[domain.EventType][]chan<- domain.Event),
 
-		log: logger.New(log, "EVENT_MANAGER"),
+		log:     logger.New(log, "EVENT_MANAGER"),
+		journal: journal,
 	}
 }
 
@@ -55,13 +58,23 @@ func (m *EventManager) Run(ctx context.Context) {
 
 	go func() {
 		defer m.log.Info("stopped serving")
-		defer func() { m.done <- struct{}{} }()
+		defer func() {
+			if err := m.journal.Flush(); err != nil {
+				m.log.Error("failed to flush journal", slog.Any("err", err))
+			}
+			m.done <- struct{}{}
+		}()
 
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case event := <-m.receiver:
+				err := m.journal.WriteJson(event)
+				if err != nil {
+					m.log.Error("failed to journal event", slog.Any("err", err))
+				}
+
 				m.notify(event)
 			}
 		}
