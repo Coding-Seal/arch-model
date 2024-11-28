@@ -20,6 +20,9 @@ type accessGetter interface {
 }
 
 type Lobby struct {
+	cancel context.CancelFunc
+	done   chan struct{}
+
 	eventCh       chan<- domain.Event
 	patientSender patientSender
 	id            int
@@ -30,6 +33,7 @@ type Lobby struct {
 
 func New(log *slog.Logger, patientSender patientSender, ID int, genPeriod time.Duration) *Lobby {
 	return &Lobby{
+		done:          make(chan struct{}, 1),
 		patientSender: patientSender,
 		log:           logger.New(log, fmt.Sprintf("LOBBY_%d", ID)),
 		id:            ID,
@@ -43,7 +47,7 @@ func (l *Lobby) Register(accessGetter accessGetter) {
 }
 
 func (l *Lobby) publishNewPatient(patient domain.Patient) {
-	l.log.Debug("sent event", slog.String("eventType", domain.NEW_PATIENT.String()))
+	l.log.Debug("publish event", slog.String("eventType", domain.NEW_PATIENT.String()))
 	l.eventCh <- domain.NewPatientEvent{
 		Timestamp: time.Now(),
 		Patient:   patient,
@@ -59,7 +63,7 @@ func (l *Lobby) newRandomPatient() domain.Patient {
 }
 
 func (l *Lobby) publishPatientGone(patientID int) {
-	l.log.Debug("sent event", slog.String("eventType", domain.PATIENT_GONE.String()))
+	l.log.Debug("publish event", slog.String("eventType", domain.PATIENT_GONE.String()))
 	l.eventCh <- domain.PatientGoneEvent{
 		Timestamp: time.Now(),
 		PatientID: patientID,
@@ -68,7 +72,7 @@ func (l *Lobby) publishPatientGone(patientID int) {
 }
 
 func (l *Lobby) publishPatientInQueue(patientID int) {
-	l.log.Debug("sent event", slog.String("eventType", domain.PATIENT_IN_QUEUE.String()))
+	l.log.Debug("publish event", slog.String("eventType", domain.PATIENT_IN_QUEUE.String()))
 	l.eventCh <- domain.PatientInQueueEvent{
 		Timestamp: time.Now(),
 		PatientID: patientID,
@@ -96,12 +100,15 @@ func (l *Lobby) generatePatient() {
 }
 
 func (l *Lobby) Run(ctx context.Context) {
-	l.log.Info("started")
+	ctx, cancel := context.WithCancel(ctx)
+	l.cancel = cancel
+	l.log.Info("started serving")
 
 	go func() {
 		ticker := time.NewTicker(l.genPeriod)
 		defer ticker.Stop()
-		defer l.log.Info("stopped")
+		defer l.log.Info("stopped serving")
+		defer func() { l.done <- struct{}{} }()
 
 		for {
 			select {
@@ -112,4 +119,9 @@ func (l *Lobby) Run(ctx context.Context) {
 			}
 		}
 	}()
+}
+
+func (l *Lobby) Stop() {
+	l.cancel()
+	<-l.done
 }

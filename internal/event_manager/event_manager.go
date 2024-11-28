@@ -9,6 +9,9 @@ import (
 )
 
 type EventManager struct {
+	cancel context.CancelFunc
+	done   chan struct{}
+
 	receiver    chan domain.Event
 	subscribers map[domain.EventType][]chan<- domain.Event
 
@@ -17,6 +20,7 @@ type EventManager struct {
 
 func New(log *slog.Logger) *EventManager {
 	return &EventManager{
+		done:        make(chan struct{}, 1),
 		receiver:    make(chan domain.Event),
 		subscribers: make(map[domain.EventType][]chan<- domain.Event),
 
@@ -44,10 +48,14 @@ func (m *EventManager) notify(event domain.Event) {
 }
 
 func (m *EventManager) Run(ctx context.Context) {
-	m.log.Info("started")
+	ctx, cancel := context.WithCancel(ctx)
+	m.cancel = cancel
+
+	m.log.Info("started serving")
 
 	go func() {
-		defer m.log.Info("stopped")
+		defer m.log.Info("stopped serving")
+		defer func() { m.done <- struct{}{} }()
 
 		for {
 			select {
@@ -58,4 +66,9 @@ func (m *EventManager) Run(ctx context.Context) {
 			}
 		}
 	}()
+}
+
+func (m *EventManager) Stop() {
+	m.cancel()
+	<-m.done
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -19,47 +20,53 @@ const (
 	numDoctors       = 5
 	numberOfSeats    = 5
 	numberOfLobbies  = 3
-	firstAppointment = 500 * time.Millisecond
-	genRate          = 1 * time.Second
+	firstAppointment = 1 * time.Second
+	genRate          = 5 * time.Second
 )
 
+type Service interface {
+	Run(ctx context.Context)
+	Stop()
+}
+
 func main() {
+	var services []Service
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer stop()
 
-	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	logFile, err := os.Create("logs/" + time.Now().Format(time.RFC3339) + ".log")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log := slog.New(slog.NewTextHandler(logFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
 	bench := bench.New(log, numberOfSeats)
 	eventManager := event_manager.New(log)
 	nurse := nurse.New(log, bench)
-
 	nurse.Register(eventManager)
 
-	lobbies := make([]*lobby.Lobby, 0, numberOfLobbies)
-	doctors := make([]*doctor.Doctor, 0, numDoctors)
+	services = append(services, eventManager, nurse)
 
 	for i := range numberOfLobbies {
 		lobby := lobby.New(log, bench, i+1, genRate)
 		lobby.Register(eventManager)
-		lobbies = append(lobbies, lobby)
+		services = append(services, lobby)
 	}
 
 	for range numDoctors {
 		doc := doctor.New(log, firstAppointment)
 		doc.Register(eventManager, nurse)
-		doctors = append(doctors, doc)
+		services = append(services, doc)
 	}
 
-	eventManager.Run(ctx)
-	nurse.Run(ctx)
-
-	for _, doc := range doctors {
-		doc.Run(ctx)
-	}
-
-	for _, lobby := range lobbies {
-		lobby.Run(ctx)
+	for _, service := range services {
+		service.Run(ctx)
 	}
 
 	<-ctx.Done()
+
+	for _, service := range services {
+		service.Stop()
+	}
 }

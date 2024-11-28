@@ -17,6 +17,9 @@ type subscriber interface {
 }
 
 type Nurse struct {
+	cancel context.CancelFunc
+	done   chan struct{}
+
 	patentGoneCh          <-chan domain.Event
 	patentInQueueCh       <-chan domain.Event
 	appointmentFinishedCh <-chan domain.Event
@@ -31,7 +34,7 @@ type Nurse struct {
 }
 
 func New(log *slog.Logger, patientGetter patientGetter) *Nurse {
-	return &Nurse{patientGetter: patientGetter, log: logger.New(log, "NURSE")}
+	return &Nurse{patientGetter: patientGetter, log: logger.New(log, "NURSE"), done: make(chan struct{}, 1)}
 }
 
 type doctor struct {
@@ -130,7 +133,12 @@ func (n *Nurse) sendPatientToDoctor() error {
 }
 
 func (n *Nurse) Run(ctx context.Context) {
+	ctx, cancel := context.WithCancel(ctx)
+	n.cancel = cancel
+	n.log.Info("started serving")
 	go func() {
+		defer n.log.Info("stopped serving")
+		defer func() { n.done <- struct{}{} }()
 		for {
 			select {
 			case <-ctx.Done():
@@ -144,4 +152,9 @@ func (n *Nurse) Run(ctx context.Context) {
 			}
 		}
 	}()
+}
+
+func (n *Nurse) Stop() {
+	n.cancel()
+	<-n.done
 }

@@ -19,6 +19,9 @@ type doctorRegisterer interface {
 }
 
 type Doctor struct {
+	cancel context.CancelFunc
+	done   chan struct{}
+
 	id                      int
 	nextAppointmentDuration time.Duration
 
@@ -30,6 +33,7 @@ type Doctor struct {
 
 func New(log *slog.Logger, firstAppointment time.Duration) *Doctor {
 	return &Doctor{
+		done:                    make(chan struct{}, 1),
 		nextAppointmentDuration: firstAppointment,
 		log:                     logger.New(log, "DOCTOR"),
 	}
@@ -76,10 +80,13 @@ func (d *Doctor) handleNewPatient(ctx context.Context, patientID int) {
 }
 
 func (d *Doctor) Run(ctx context.Context) {
-	d.log.Info("started")
+	d.log.Info("started serving")
+	ctx, cancel := context.WithCancel(ctx)
+	d.cancel = cancel
 
 	go func() {
-		defer d.log.Info("stopped")
+		defer d.log.Info("stopped serving")
+		defer func() { d.done <- struct{}{} }()
 
 		for {
 			select {
@@ -90,4 +97,9 @@ func (d *Doctor) Run(ctx context.Context) {
 			}
 		}
 	}()
+}
+
+func (d *Doctor) Stop() {
+	d.cancel()
+	<-d.done
 }
