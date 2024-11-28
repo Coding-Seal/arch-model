@@ -38,9 +38,9 @@ type Event interface {
 }
 
 type NewPatientEvent struct {
-	Timestamp time.Time
-	Patient   Patient
-	LobbyID   int
+	Timestamp time.Time `json:"timestamp"`
+	Patient   Patient   `json:"patient_id"`
+	LobbyID   int       `json:"lobby_id"`
 }
 
 func (e NewPatientEvent) Type() EventType {
@@ -52,9 +52,9 @@ func (e NewPatientEvent) Time() time.Time {
 }
 
 type PatientGoneEvent struct {
-	Timestamp time.Time
-	PatientID int
-	LobbyID   int
+	Timestamp time.Time `json:"timestamp"`
+	PatientID int       `json:"patient_id"`
+	LobbyID   int       `json:"lobby_id"`
 }
 
 func (e PatientGoneEvent) Time() time.Time {
@@ -66,9 +66,9 @@ func (e PatientGoneEvent) Type() EventType {
 }
 
 type PatientInQueueEvent struct {
-	Timestamp time.Time
-	PatientID int
-	LobbyID   int
+	Timestamp time.Time `json:"timestamp"`
+	PatientID int       `json:"patient_id"`
+	LobbyID   int       `json:"lobby_id"`
 }
 
 func (e PatientInQueueEvent) Time() time.Time {
@@ -80,9 +80,9 @@ func (e PatientInQueueEvent) Type() EventType {
 }
 
 type AppointmentFinishedEvent struct {
-	Timestamp time.Time
-	PatientID int
-	DoctorID  int
+	Timestamp time.Time `json:"timestamp"`
+	PatientID int       `json:"patient_id"`
+	DoctorID  int       `json:"doctor_id"`
 }
 
 func (e AppointmentFinishedEvent) Time() time.Time {
@@ -94,9 +94,9 @@ func (e AppointmentFinishedEvent) Type() EventType {
 }
 
 type AppointmentStartedEvent struct {
-	Timestamp time.Time
-	PatientID int
-	DoctorID  int
+	Timestamp time.Time `json:"timestamp"`
+	PatientID int       `json:"patient_id"`
+	DoctorID  int       `json:"doctor_id"`
 }
 
 func (e AppointmentStartedEvent) Time() time.Time {
