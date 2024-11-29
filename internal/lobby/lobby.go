@@ -82,7 +82,7 @@ func (l *Lobby) sendPatientToBench(patient domain.Patient) {
 
 func (l *Lobby) generatePatient() {
 	patient := l.newRandomPatient()
-	l.log.Debug("generated new patient", slog.Any("patient", patient))
+	l.log.Debug("generated new patient", slog.Int("patientID", patient.ID), slog.Any("patient", patient))
 	l.publishNewPatient(patient)
 	l.sendPatientToBench(patient)
 }

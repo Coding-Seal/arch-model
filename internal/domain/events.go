@@ -36,6 +36,7 @@ type Event interface {
 	Time() time.Time
 	Type() EventType
 }
+
 type eventTimer struct {
 	Timestamp time.Time `json:"timestamp"`
 	EventType EventType `json:"eventType"`
@@ -51,7 +52,7 @@ func (e eventTimer) Time() time.Time {
 
 type NewPatientEvent struct {
 	eventTimer
-	Patient Patient `json:"patientId"`
+	Patient Patient `json:"patient"`
 	LobbyID int     `json:"lobbyId"`
 }
 

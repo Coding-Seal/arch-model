@@ -49,11 +49,13 @@ func (d *Doctor) Register(accessGetter accessGetter, doctorRegisterer doctorRegi
 
 func (d *Doctor) publishAppointmentFinished(patientID int) {
 	d.log.Debug("publish event", slog.String("eventType", domain.APPOINTMENT_FINISHED.String()))
+	d.log.Debug("appointment finished", slog.Int("patientID", patientID))
 	d.eventCh <- domain.NewAppointmentFinishedEvent(patientID, d.id)
 }
 
 func (d *Doctor) publishAppointmentStarted(patientID int) {
 	d.log.Debug("publish event", slog.String("eventType", domain.APPOINTMENT_STARTED.String()))
+	d.log.Debug("appointment started", slog.Int("patientID", patientID))
 	d.eventCh <- domain.NewAppointmentStartedEvent(patientID, d.id)
 }
 

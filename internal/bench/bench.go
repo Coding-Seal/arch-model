@@ -29,8 +29,7 @@ func (b *Bench) PushPatientID(patientID int) (int, bool) {
 	if b.queue.Full() {
 		lastPatientID, _ := b.queue.Back()
 		b.log.Debug("queue is full, some one have to go",
-			slog.Int("newPatientID", patientID),
-			slog.Int("lastPatientID", lastPatientID))
+			slog.Int("lastPatientID", lastPatientID), slog.Int("newPatientID", patientID))
 		b.queue.PopBack()
 
 		return lastPatientID, false
