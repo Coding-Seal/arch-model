@@ -4,7 +4,9 @@ import (
 	"sync"
 )
 
-var SeqPatientID SeqID
+var SeqPatientID = &SeqID{
+	id: 1,
+}
 
 type SeqID struct {
 	id int

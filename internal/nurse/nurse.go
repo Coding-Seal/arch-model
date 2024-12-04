@@ -88,7 +88,7 @@ func (n *Nurse) handlePatientInQueueEvent() {
 
 	err := n.sendPatientToDoctor()
 	if err != nil {
-		// TODO: Log error
+		n.log.Error("failed to send patient to doctor", slog.Any("err", err))
 	}
 }
 
@@ -117,7 +117,9 @@ func (n *Nurse) handleAppointmentFinishedEvent(event domain.Event) {
 func (n *Nurse) sendPatientToDoctor() error {
 	doc, err := n.findAvailableDoctor()
 	if err != nil {
-		return err
+		n.log.Debug("failed to find doctor", slog.Any("err", err))
+
+		return nil
 	}
 
 	patientID, err := n.patientGetter.NextPatientID()

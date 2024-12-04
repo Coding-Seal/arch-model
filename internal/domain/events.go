@@ -37,28 +37,28 @@ type Event interface {
 	Type() EventType
 }
 
-type eventTimer struct {
+type EventTimer struct {
 	Timestamp time.Time `json:"timestamp"`
 	EventType EventType `json:"eventType"`
 }
 
-func (e eventTimer) Type() EventType {
+func (e EventTimer) Type() EventType {
 	return e.EventType
 }
 
-func (e eventTimer) Time() time.Time {
+func (e EventTimer) Time() time.Time {
 	return e.Timestamp
 }
 
 type NewPatientEvent struct {
-	eventTimer
+	EventTimer
 	Patient Patient `json:"patient"`
 	LobbyID int     `json:"lobbyId"`
 }
 
 func NewNewPatientEvent(patient Patient, lobbyID int) NewPatientEvent {
 	return NewPatientEvent{
-		eventTimer: eventTimer{
+		EventTimer: EventTimer{
 			Timestamp: time.Now(),
 			EventType: NEW_PATIENT,
 		},
@@ -68,14 +68,14 @@ func NewNewPatientEvent(patient Patient, lobbyID int) NewPatientEvent {
 }
 
 type PatientGoneEvent struct {
-	eventTimer
+	EventTimer
 	PatientID int `json:"patientId"`
 	LobbyID   int `json:"lobbyId"`
 }
 
 func NewPatientGoneEvent(patientId int, lobbyID int) PatientGoneEvent {
 	return PatientGoneEvent{
-		eventTimer: eventTimer{
+		EventTimer: EventTimer{
 			Timestamp: time.Now(),
 			EventType: PATIENT_GONE,
 		},
@@ -85,14 +85,14 @@ func NewPatientGoneEvent(patientId int, lobbyID int) PatientGoneEvent {
 }
 
 type PatientInQueueEvent struct {
-	eventTimer
+	EventTimer
 	PatientID int `json:"patientId"`
 	LobbyID   int `json:"lobbyId"`
 }
 
 func NewPatientInQueueEvent(patientId int, lobbyID int) PatientInQueueEvent {
 	return PatientInQueueEvent{
-		eventTimer: eventTimer{
+		EventTimer: EventTimer{
 			Timestamp: time.Now(),
 			EventType: PATIENT_IN_QUEUE,
 		},
@@ -102,14 +102,14 @@ func NewPatientInQueueEvent(patientId int, lobbyID int) PatientInQueueEvent {
 }
 
 type AppointmentFinishedEvent struct {
-	eventTimer
+	EventTimer
 	PatientID int `json:"patientId"`
 	DoctorID  int `json:"doctorId"`
 }
 
 func NewAppointmentFinishedEvent(patientId int, doctorID int) AppointmentFinishedEvent {
 	return AppointmentFinishedEvent{
-		eventTimer: eventTimer{
+		EventTimer: EventTimer{
 			Timestamp: time.Now(),
 			EventType: APPOINTMENT_FINISHED,
 		},
@@ -119,14 +119,14 @@ func NewAppointmentFinishedEvent(patientId int, doctorID int) AppointmentFinishe
 }
 
 type AppointmentStartedEvent struct {
-	eventTimer
+	EventTimer
 	PatientID int `json:"patientId"`
 	DoctorID  int `json:"doctorId"`
 }
 
 func NewAppointmentStartedEvent(patientId int, doctorID int) AppointmentStartedEvent {
 	return AppointmentStartedEvent{
-		eventTimer: eventTimer{
+		EventTimer: EventTimer{
 			Timestamp: time.Now(),
 			EventType: APPOINTMENT_STARTED,
 		},

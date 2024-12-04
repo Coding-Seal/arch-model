@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Tree Structure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between; /* Space between columns */
+        }
+        .column {
+            flex: 1; /* Each column takes equal space */
+            margin: 0 10px; /* Space between columns */
+        }
+        .tree {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        .tree li {
+            margin: 5px 0;
+        }
+        .tree .node {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .activated {
+            color: blue; /* Color for activated elements */
+        }
+        .busy {
+            color: green; /* Color for busy doctors */
+        }
+        .event-string {
+            font-size: 18px; /* Font size for event string */
+            font-weight: bold; /* Bold text */
+            color: #333; /* Text color */
+            margin-bottom: 20px; /* Space below event string */
+            white-space: pre-wrap; /* Preserve whitespace and wrap lines */
+            background-color: #f8f9fa; /* Light background for better visibility */
+            padding: 10px; /* Padding around the JSON */
+            border-radius: 5px; /* Rounded corners */
+            overflow-x: auto; /* Allow horizontal scrolling if needed */
+        }
+        .button-container {
+            margin-top: 20px; /* Space above buttons */
+            text-align: center; /* Center the buttons */
+        }
+        .button-link {
+            display: inline-block; /* Make link behave like a block */
+            padding: 10px 15px; /* Padding for buttons */
+            margin: 5px; /* Margin between buttons */
+            border: none; /* No border */
+            border-radius: 5px; /* Rounded corners */
+            background-color: #007BFF; /* Bootstrap primary color */
+            color: white; /* Text color */
+            text-decoration: none; /* Remove underline from links */
+            font-size: 16px; /* Font size */
+            transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+        }
+        .button-link:hover {
+            background-color: #0056b3; /* Darker shade on hover */
+        }
+        
+        /* Bench state colors */
+        .bench-nothing {
+            color: black; /* Default color for Nothing state */
+        }
+        .bench-denial {
+            color: red;   /* Color for Denial state */
+        }
+        .bench-good {
+            color: green; /* Color for Good state */
+        }
+        .bench-advanced {
+            color: blue;  /* Color for Advanced state */
+        }
+    </style>
+</head>
+<body>
+
+<h1>System Tree Structure</h1>
+
+<!-- Display Event String as Pretty JSON -->
+<div class="event-string">{{ .Utils.EventString }}</div>
+
+<div class="container">
+    <div class="column">
+        <h2>Lobbies</h2>
+        <ul class="tree">
+            {{ range $id, $lobby := .Lobbies }}
+            <li class="node">ID: {{$lobby.ID}}
+                <ul>
+                    <li class="{{ if $lobby.Activated }}activated{{ end }}">Activated: {{$lobby.Activated}}</li>
+                    <li>Patient ID: {{$lobby.PatientID}}</li>
+                </ul>
+            </li>
+            {{ end }}
+        </ul>
+    </div>
+
+    <div class="column">
+        <h2>Nurse</h2>
+        {{ if .Nurse }}
+        <ul class="tree">
+            <li class="node">Nurse:
+                <ul>
+                    <li class="{{ if .Nurse.Activated }}activated{{ end }}">Activated: {{ .Nurse.Activated }}</li>
+                </ul>
+            </li>
+        </ul>
+        {{ end }}
+
+        <h2>Bench</h2>
+        {{ if .Bench }}
+        <ul class="tree">
+            <li class="node">Bench:
+                <ul>
+                    <li>Capacity: {{ .Bench.Cap }}</li>
+                    <!-- Apply appropriate classes based on Bench State -->
+                    <li class="
+                        {{ if eq .Bench.State 0 }}bench-nothing{{ end }}
+                        {{ if eq .Bench.State 1 }}bench-denial{{ end }}
+                        {{ if eq .Bench.State 2 }}bench-good{{ end }}
+                        {{ if eq .Bench.State 3 }}bench-advanced{{ end }}
+                    ">
+                        State:
+                        {{ if eq .Bench.State 0 }}Nothing
+                        {{ else if eq .Bench.State 1 }}Denial
+                        {{ else if eq .Bench.State 2 }}Good
+                        {{ else if eq .Bench.State 3 }}Advanced
+                        {{ end }}
+                    </li>
+                    <li>Patients:
+                        <ul>
+                            {{ range .Bench.Patients }}
+                            <li>Patient ID: {{ . }}</li>
+                            {{ end }}
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        {{ end }}
+    </div>
+
+    <div class="column">
+        <h2>Doctors</h2>
+        <ul class="tree">
+            {{ range $id, $doctor := .Doctors }}
+            <li class="node">ID: {{$doctor.ID}}
+                <ul>
+                    <!-- Apply 'busy' class if doctor is busy -->
+                    <li class="{{ if $doctor.Busy }}busy{{ end }}">{{ if $doctor.Busy }}Busy{{ else }}Not Busy{{ end }}</li>
+                    <li>Patient ID: {{$doctor.PatientID}}</li>
+                </ul>
+            </li>
+            {{ end }}
+        </ul>
+    </div>
+</div>
+
+<!-- Button Container -->
+<div class="button-container">
+    <!-- Link to Previous State -->
+    <a href="/state?id={{ .Utils.PreviousStateID }}" class="button-link">Go to Previous State</a>
+
+    <!-- Link to Next State -->
+    <a href="/state?id={{ .Utils.NextStateID }}" class="button-link">Go to Next State</a>
+
+</div>
+
+</body>
+</html>
+

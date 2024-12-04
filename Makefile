@@ -1,7 +1,7 @@
 .PHONY: lint 
 lint:
 	wsl --fix ./...
-	golangci-lint run --fix --disable="godox"
+	golangci-lint run --fix
 
 .PHONY: clean 
 clean:

@@ -3,4 +3,6 @@ linters:
   disable:
     - gomnd
     - depguard
+    - funlen
+    - godox
   fast: true

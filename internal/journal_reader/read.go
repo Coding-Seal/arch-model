@@ -32,27 +32,27 @@ func (j *Journal) Read() ([]domain.Event, error) {
 
 	for j.sc.Scan() {
 		err := j.sc.Json(&newPatient)
-		if err == nil {
+		if err == nil && newPatient.Type() == domain.NEW_PATIENT {
 			data = append(data, newPatient)
 		}
 
 		err = j.sc.Json(&patientGone)
-		if err == nil {
+		if err == nil && patientGone.Type() == domain.PATIENT_GONE {
 			data = append(data, patientGone)
 		}
 
 		err = j.sc.Json(&patientInQueue)
-		if err == nil {
+		if err == nil && patientInQueue.Type() == domain.PATIENT_IN_QUEUE {
 			data = append(data, patientInQueue)
 		}
 
 		err = j.sc.Json(&appointmentFinished)
-		if err == nil {
+		if err == nil && appointmentFinished.Type() == domain.APPOINTMENT_FINISHED {
 			data = append(data, appointmentFinished)
 		}
 
 		err = j.sc.Json(&appointmentStarted)
-		if err == nil {
+		if err == nil && appointmentStarted.Type() == domain.APPOINTMENT_STARTED {
 			data = append(data, appointmentStarted)
 		}
 
