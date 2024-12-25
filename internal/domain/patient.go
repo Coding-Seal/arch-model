@@ -4,13 +4,15 @@ import (
 	"sync"
 )
 
-var SeqPatientID = &SeqID{
-	id: 1,
-}
-
 type SeqID struct {
 	id int
 	mu sync.Mutex
+}
+
+func NewSeqID() *SeqID {
+	return &SeqID{
+		id: 1,
+	}
 }
 
 func (s *SeqID) Get() int {

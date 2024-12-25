@@ -8,7 +8,7 @@ type Dequeue[T any] struct {
 func New[T any](n int) *Dequeue[T] {
 	return &Dequeue[T]{
 		data:     make([]T, n),
-		front:    0,
+		front:    1,
 		rear:     0,
 		size:     0,
 		capacity: n,
@@ -50,10 +50,7 @@ func (q *Dequeue[T]) PushBack(elem T) bool {
 		return false
 	}
 
-	if !q.Empty() {
-		q.rear = (q.rear + 1) % q.capacity
-	}
-
+	q.rear = mod((q.rear + 1), q.capacity)
 	q.data[q.rear] = elem
 	q.size++
 
@@ -65,14 +62,7 @@ func (q *Dequeue[T]) PushFront(elem T) bool {
 		return false
 	}
 
-	if !q.Empty() {
-		if q.front == 0 {
-			q.front = q.capacity - 1
-		} else {
-			q.front--
-		}
-	}
-
+	q.front = mod((q.front - 1), q.capacity)
 	q.data[q.front] = elem
 	q.size++
 
@@ -80,23 +70,33 @@ func (q *Dequeue[T]) PushFront(elem T) bool {
 }
 
 func (q *Dequeue[T]) PopBack() bool {
+	var null T
+
 	if q.Empty() {
 		return false
 	}
 
-	q.rear = (q.rear - 1) % q.capacity
+	q.data[q.rear] = null
+	q.rear = mod((q.rear - 1), q.capacity)
 	q.size--
 
 	return true
 }
 
 func (q *Dequeue[T]) PopFront() bool {
+	var null T
+
 	if q.Empty() {
 		return false
 	}
 
-	q.front = (q.front + 1) % q.capacity
+	q.data[q.front] = null
+	q.front = mod((q.front + 1), q.capacity)
 	q.size--
 
 	return true
+}
+
+func mod(a, b int) int {
+	return (a%b + b) % b
 }

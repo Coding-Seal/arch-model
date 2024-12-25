@@ -141,7 +141,7 @@ func (n *Nurse) Run(ctx context.Context) {
 
 	go func() {
 		defer n.log.Info("stopped serving")
-		defer func() { n.done <- struct{}{} }()
+		defer func() { close(n.done) }()
 
 		for {
 			select {

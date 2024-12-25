@@ -13,12 +13,12 @@ import (
 	"github.com/Coding-Seal/arch-model/internal/journal_reader/ui"
 )
 
-const fileName = ".journal/2024-12-02T01:40:25+03:00.jrl"
+const fileName = ".journal/0.jrl"
 
-// const fileName = "../../.journal/2024-12-02T01:40:25+03:00.jrl"
+// const fileName = "../../.0.jrl"
 
 const (
-	numDoctors = 5
+	numDoctors = 10
 	benchCap   = 5
 	numLobbies = 3
 )

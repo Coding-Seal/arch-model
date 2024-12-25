@@ -116,5 +116,84 @@ var _ = Describe("Dequeue", func() {
 			}
 			Expect(q.Empty()).To(BeTrue())
 		})
+		It("Use as reverse queue", func() {
+			for i := range queueSize {
+				Expect(q.PushFront(i + 1)).To(BeTrue())
+			}
+
+			Expect(q.Full()).To(BeTrue())
+
+			for i := range queueSize {
+				elem, ok := q.Back()
+				Expect(ok).To(BeTrue())
+				Expect(elem).To(Equal(i + 1))
+				Expect(q.PopBack()).To(BeTrue())
+			}
+			Expect(q.Empty()).To(BeTrue())
+		})
+		It("Random", func() {
+			Expect(q.PushBack(1)).To(BeTrue())
+			Expect(q.PushBack(2)).To(BeTrue())
+			Expect(q.PushBack(3)).To(BeTrue())
+
+			elem, ok := q.Front()
+			Expect(ok).To(BeTrue())
+			Expect(elem).To(Equal(1))
+			Expect(q.PopFront()).To(BeTrue())
+
+			elem, ok = q.Front()
+			Expect(ok).To(BeTrue())
+			Expect(elem).To(Equal(2))
+			Expect(q.PopFront()).To(BeTrue())
+
+			elem, ok = q.Front()
+			Expect(ok).To(BeTrue())
+			Expect(elem).To(Equal(3))
+			Expect(q.PopFront()).To(BeTrue())
+
+			_, ok = q.Front()
+			Expect(ok).To(BeFalse())
+			Expect(q.PopFront()).To(BeFalse())
+
+			Expect(q.PushBack(1)).To(BeTrue())
+			Expect(q.PushBack(2)).To(BeTrue())
+			Expect(q.PushBack(3)).To(BeTrue())
+			Expect(q.PushBack(4)).To(BeTrue())
+			Expect(q.PushBack(5)).To(BeTrue())
+
+			Expect(q.PushFront(6)).To(BeFalse())
+			Expect(q.PushBack(6)).To(BeFalse())
+
+			elem, ok = q.Back()
+			Expect(ok).To(BeTrue())
+			Expect(elem).To(Equal(5))
+			Expect(q.PopBack()).To(BeTrue())
+			Expect(q.PushBack(5)).To(BeTrue())
+
+			elem, ok = q.Front()
+			Expect(ok).To(BeTrue())
+			Expect(elem).To(Equal(1))
+			Expect(q.PopFront()).To(BeTrue())
+
+			elem, ok = q.Front()
+			Expect(ok).To(BeTrue())
+			Expect(elem).To(Equal(2))
+			Expect(q.PopFront()).To(BeTrue())
+
+			elem, ok = q.Front()
+			Expect(ok).To(BeTrue())
+			Expect(elem).To(Equal(3))
+			Expect(q.PopFront()).To(BeTrue())
+
+			elem, ok = q.Front()
+			Expect(ok).To(BeTrue())
+			Expect(elem).To(Equal(4))
+			Expect(q.PopFront()).To(BeTrue())
+
+			elem, ok = q.Front()
+			Expect(ok).To(BeTrue())
+			Expect(elem).To(Equal(5))
+			Expect(q.PopFront()).To(BeTrue())
+		})
 	})
 })

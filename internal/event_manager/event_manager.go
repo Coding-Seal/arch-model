@@ -50,7 +50,7 @@ func (m *EventManager) notify(event domain.Event) {
 	}
 }
 
-func (m *EventManager) Run(ctx context.Context) {
+func (m *EventManager) Run(ctx context.Context, otherCtx context.Context) {
 	ctx, cancel := context.WithCancel(ctx)
 	m.cancel = cancel
 
@@ -62,20 +62,38 @@ func (m *EventManager) Run(ctx context.Context) {
 			if err := m.journal.Flush(); err != nil {
 				m.log.Error("failed to flush journal", slog.Any("err", err))
 			}
-			m.done <- struct{}{}
+
+			close(m.done)
 		}()
 
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case event := <-m.receiver:
-				err := m.journal.WriteJson(event)
-				if err != nil {
-					m.log.Error("failed to journal event", slog.Any("err", err))
-				}
+			case <-otherCtx.Done():
+				select {
+				case event := <-m.receiver:
+					m.log.Debug("got event", slog.Any("event", event))
 
-				m.notify(event)
+					err := m.journal.WriteJson(event)
+					if err != nil {
+						m.log.Error("failed to journal event", slog.Any("err", err))
+					}
+				default:
+				}
+			default:
+				select {
+				case event := <-m.receiver:
+					m.log.Debug("got event", slog.Any("event", event))
+
+					err := m.journal.WriteJson(event)
+					if err != nil {
+						m.log.Error("failed to journal event", slog.Any("err", err))
+					}
+
+					m.notify(event)
+				default:
+				}
 			}
 		}
 	}()

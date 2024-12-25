@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"math/rand/v2"
 	"time"
 
 	"github.com/Coding-Seal/arch-model/internal/domain"
@@ -27,17 +28,19 @@ type Lobby struct {
 	patientSender patientSender
 	id            int
 	genPeriod     time.Duration
+	patientIDGen  *domain.SeqID
 
 	log *logger.Logger
 }
 
-func New(log *slog.Logger, patientSender patientSender, ID int, genPeriod time.Duration) *Lobby {
+func New(log *slog.Logger, patientSender patientSender, ID int, genPeriod time.Duration, patientIDGen *domain.SeqID) *Lobby {
 	return &Lobby{
 		done:          make(chan struct{}, 1),
 		patientSender: patientSender,
 		log:           logger.New(log, fmt.Sprintf("LOBBY_%d", ID)),
 		id:            ID,
 		genPeriod:     genPeriod,
+		patientIDGen:  patientIDGen,
 	}
 }
 
@@ -53,7 +56,7 @@ func (l *Lobby) publishNewPatient(patient domain.Patient) {
 
 func (l *Lobby) newRandomPatient() domain.Patient {
 	return domain.Patient{
-		ID:   domain.SeqPatientID.Get(),
+		ID:   l.patientIDGen.Get(),
 		Name: gofakeit.Name(),
 	}
 }
@@ -93,10 +96,10 @@ func (l *Lobby) Run(ctx context.Context) {
 	l.log.Info("started serving")
 
 	go func() {
-		ticker := time.NewTicker(l.genPeriod)
+		ticker := time.NewTicker(getGenPeriod(l.genPeriod))
 		defer ticker.Stop()
 		defer l.log.Info("stopped serving")
-		defer func() { l.done <- struct{}{} }()
+		defer func() { close(l.done) }()
 
 		for {
 			select {
@@ -104,11 +107,15 @@ func (l *Lobby) Run(ctx context.Context) {
 				return
 			case <-ticker.C:
 				l.generatePatient()
+				ticker.Reset(getGenPeriod(l.genPeriod))
 			}
 		}
 	}()
 }
 
+func getGenPeriod(period time.Duration) time.Duration {
+	return time.Duration(float64(period) * rand.Float64())
+}
 func (l *Lobby) Stop() {
 	l.cancel()
 	<-l.done

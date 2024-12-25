@@ -2,6 +2,7 @@ package journalreader
 
 import (
 	"io"
+	"slices"
 
 	"github.com/Coding-Seal/arch-model/internal/domain"
 	"github.com/Coding-Seal/arch-model/pkg/jsonl"
@@ -60,6 +61,10 @@ func (j *Journal) Read() ([]domain.Event, error) {
 			return nil, err
 		}
 	}
+
+	slices.SortFunc(data, func(a, b domain.Event) int {
+		return a.ID() - b.ID()
+	})
 
 	return data, nil
 }

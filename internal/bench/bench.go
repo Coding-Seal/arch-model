@@ -26,6 +26,10 @@ func (b *Bench) PushPatientID(patientID int) (int, bool) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
+	if patientID < 1 {
+		panic("should never happen")
+	}
+
 	if b.queue.Full() {
 		lastPatientID, _ := b.queue.Back()
 		b.log.Debug("queue is full, some one have to go",
@@ -50,6 +54,10 @@ func (b *Bench) NextPatientID() (int, error) {
 		b.log.Warning("tried to advance queue, it is empty")
 
 		return patientID, domain.ErrEmptyQueue
+	}
+
+	if patientID < 1 {
+		panic("should never happen")
 	}
 
 	b.queue.PopFront()

@@ -26,7 +26,7 @@ func NewSystem(numDoctors, numLobbies, benchCap int, currentStateID int, EventSt
 	}
 
 	for i := range numLobbies {
-		lobbies[i] = &Lobby{ID: i}
+		lobbies[i+1] = &Lobby{ID: i + 1}
 	}
 
 	return &System{
@@ -36,6 +36,7 @@ func NewSystem(numDoctors, numLobbies, benchCap int, currentStateID int, EventSt
 		Bench: &Bench{
 			Cap:      benchCap,
 			Patients: make([]int, benchCap),
+			Top:      -1,
 		},
 		Utils: Utils{
 			PreviousStateID: currentStateID - 1,
@@ -116,8 +117,8 @@ func (s *System) ApplyEvent(e domain.Event) {
 		s.activateLobby(event.LobbyID, event.Patient.ID)
 		s.Lobbies[event.LobbyID].PatientID = event.Patient.ID
 	case domain.PatientInQueueEvent:
-		s.Bench.Patients[s.Bench.Top] = event.PatientID
 		s.Bench.Top++
+		s.Bench.Patients[s.Bench.Top] = event.PatientID
 		s.activateLobby(event.LobbyID, event.PatientID)
 		s.Bench.State = Good
 	case domain.PatientGoneEvent:

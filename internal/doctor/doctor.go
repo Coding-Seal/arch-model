@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"math/rand/v2"
 	"time"
 
 	"github.com/Coding-Seal/arch-model/internal/domain"
@@ -22,8 +23,8 @@ type Doctor struct {
 	cancel context.CancelFunc
 	done   chan struct{}
 
-	id                      int
-	nextAppointmentDuration time.Duration
+	id                       int
+	firstAppointmentDuration time.Duration
 
 	eventCh     chan<- domain.Event
 	patientIDCh <-chan int
@@ -33,9 +34,9 @@ type Doctor struct {
 
 func New(log *slog.Logger, firstAppointment time.Duration) *Doctor {
 	return &Doctor{
-		done:                    make(chan struct{}, 1),
-		nextAppointmentDuration: firstAppointment,
-		log:                     logger.New(log, "DOCTOR"),
+		done:                     make(chan struct{}, 1),
+		firstAppointmentDuration: firstAppointment,
+		log:                      logger.New(log, "DOCTOR"),
 	}
 }
 
@@ -61,16 +62,29 @@ func (d *Doctor) publishAppointmentStarted(patientID int) {
 
 func (d *Doctor) handleNewPatient(ctx context.Context, patientID int) {
 	d.publishAppointmentStarted(patientID)
-	ch := time.After(d.nextAppointmentDuration)
+
+	ticker := time.NewTicker(getAppointmentDuration(d.firstAppointmentDuration, patientID))
 	select {
 	case <-ctx.Done():
+		d.publishAppointmentFinished(patientID)
+		ticker.Stop()
+
 		return
-	case <-ch:
-		d.nextAppointmentDuration *= 2
+	case <-ticker.C:
 		d.publishAppointmentFinished(patientID)
 
 		return
 	}
+}
+
+// func getAppointmentDuration(con time.Duration, id int) time.Duration {
+// 	return con * time.Duration(math.Pow(2, float64(id)))
+// }
+
+func getAppointmentDuration(con time.Duration, _ int) time.Duration {
+	r := rand.ExpFloat64()
+
+	return time.Duration(r * float64(con))
 }
 
 func (d *Doctor) Run(ctx context.Context) {
@@ -81,7 +95,7 @@ func (d *Doctor) Run(ctx context.Context) {
 
 	go func() {
 		defer d.log.Info("stopped serving")
-		defer func() { d.done <- struct{}{} }()
+		defer func() { close(d.done) }()
 
 		for {
 			select {
